@@ -1,0 +1,31 @@
+# If the root user has a password you have to create a
+# /root/.my.cnf configuration file with the following
+# content:
+#
+# [mysqladmin]
+# password = <secret>
+# user= root
+#
+# where "<secret>" is the password.
+#
+# ATTENTION: This /root/.my.cnf should be readable ONLY
+# for root !
+
+"{{ db_log_dir }}/*.log" {
+  su mysql mysql
+  create 664 mysql mysql
+  dateext
+  notifempty
+  missingok
+  size 1024M
+  rotate 3
+  compress
+  postrotate
+    # just if mysqld is really running
+    if test -x /usr/bin/mysqladmin && \
+     /usr/bin/mysqladmin ping &>/dev/null
+    then
+     /usr/bin/mysqladmin flush-logs
+    fi
+  endscript
+}

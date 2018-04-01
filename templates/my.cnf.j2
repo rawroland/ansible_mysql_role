@@ -1,0 +1,44 @@
+[mysqld]
+datadir={{ datadir }}
+socket={{ mysql_unix_socket }}
+user=mysql
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+port={{ mysql_port }}
+max_allowed_packet = 64M
+
+query_cache_type = 0
+tmp_table_size = 128M
+max_heap_table_size = 128M
+innodb_buffer_pool_size = 1024M
+innodb_buffer_pool_instances = 1
+performance_schema = {{ performance_schema }}
+skip-name-resolve
+
+# loging
+general_log = {{ db_general_log }}
+general_log_file = {{ db_log_dir }}/{{ db_general_log_file }}
+
+slow_query_log = {{ db_slow_query_log }}
+slow_query_log_file = {{ db_log_dir }}/{{ db_slow_query_log_file }}
+
+long_query_time = {{ db_long_query_time }}
+log-slow-admin-statements = {{ db_log_slow_admin_statements }}
+log-slow-slave-statements = {{ db_log_slow_slave_statements }}
+
+## loging audit-log
+##not default in mariadb
+#audit_log = {{ db_audit_log }}
+#audit_log_buffer_size = 1048576
+#audit_log_include_accounts = osip_bo
+#audit_log_exclude_accounts = root
+#audit_log_rotate_on_size = 64M
+#audit_log_file = {{ db_log_dir }}/audit.log
+#audit_log_strategy = PERFORMANCE
+#audit_log_statement_policy = ALL
+#audit_log_connection_policy = ALL
+#audit_log_policy = ALL
+
+[mysqld_safe]
+log-error={{ db_log_dir }}/{{ db_service_log }}
+pid-file=/var/run/mysqld/mysqld.pid

@@ -1,0 +1,19 @@
+---
+
+# mysqld
+mysql_port: 3306
+datadir: /var/lib/mysql
+mysql_unix_socket: /var/run/mysqld/mysqld.sock
+performance_schema: on
+
+# logging
+db_log_dir: /var/log/mysql
+db_service_log: mysqld.log
+db_general_log: ON
+db_general_log_file: mysqld-general.log
+db_slow_query_log: ON
+db_slow_query_log_file: mysqld-slow.log
+db_long_query_time: 1
+db_log_slow_admin_statements: ON
+db_log_slow_slave_statements: ON
+db_audit_log: OFF

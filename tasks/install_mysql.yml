@@ -1,0 +1,64 @@
+---
+# This playbook will install MariaDB and create db user and give permissions.
+
+- name: Install mySQL package
+  package: name={{ item }} state=installed
+  with_items:
+  - python-mysqldb
+  - "mysql-server-{{ mysql_version }}"
+  - "mysql-client-{{ mysql_version }}"
+
+- name: Create mySQL configuration files
+  template: src="{{ item.src }}" dest="{{ item.dest }}"
+  with_items:
+    - src: my.cnf.j2
+      dest: /etc/mysql/my.cnf
+    - src: root.my.cnf.j2
+      dest: /root/.my.cnf
+  notify:
+    - restart mysqld
+
+- name: Create mySQL log folder '{{ db_log_dir }}'
+  file:
+    path: "{{ db_log_dir }}"
+    mode: u=rwX,g=rwX,o=rwX
+    state: directory
+    recurse: yes
+
+- name: Create mySQL-Server log file
+  file: path=/var/log/mysqld.log state=touch owner=mysql group=mysql mode=0775
+
+- name: Create mySQL-Server PID directory
+  file: path=/var/run/mysqld state=directory owner=mysql group=mysql mode=0775
+
+- include_tasks: "{{ ansible_distribution }}/start_service.yml"
+
+- name: Removes all anonymous users
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+
+- name: Create DB root-user for localhost
+  mysql_user:
+    name: "{{ db_root_user }}"
+    password: "{{ db_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    host: "{{ item }}"
+    state: present
+  with_items:
+    - 'localhost'
+    - '127.0.0.1'
+  notify:
+    - restart mysqld
+
+- name: Activate log rotation for general and slow query logs
+  template: src=etc-logrotate-mysql.j2 dest=/etc/logrotate.d/mysql
+
+- name: Check logrotate cron
+  stat: path=/etc/cron.daily/logrotate
+  register: logrotate_cron_daily
+
+- name: Tweak logrotate to execute hourly
+  command: mv /etc/cron.daily/logrotate /etc/cron.hourly/logrotate
+  when: 'env == "dev" and logrotate_cron_daily.stat.exists == True'

@@ -1,0 +1,5 @@
+---
+# This playbook will install MariaDB and create db user and give permissions.
+
+- include_vars: "{{ env }}.yml"
+- include_tasks: install_mysql.yml
