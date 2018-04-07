@@ -17,6 +17,8 @@
       dest: /etc/mysql/my.cnf
     - src: root.my.cnf.j2
       dest: /root/.my.cnf
+    - src: root.my.cnf.j2
+      dest: "/home/{{ deployer }}/.my.cnf"
   notify:
     - restart mysqld
 
