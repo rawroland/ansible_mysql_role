@@ -35,24 +35,29 @@
 
 - include_tasks: "{{ ansible_distribution }}/start_service.yml"
 
-- name: Removes all anonymous users
+- name: Update MySQL root password for all root accounts
   mysql_user:
-    name: ''
-    host_all: yes
-    state: absent
-
-- name: Create DB root-user for localhost
-  mysql_user:
-    name: "{{ db_root_user }}"
-    password: "{{ db_root_password }}"
-    priv: "*.*:ALL,GRANT"
+    login_user: root
+    login_password: "{{ db_root_password }}"
+    check_implicit_admin: yes
+    name: root
     host: "{{ item }}"
+    password: "{{ db_root_password }}"
     state: present
   with_items:
-    - 'localhost'
-    - '127.0.0.1'
-  notify:
-    - restart mysqld
+    - ::1
+    - localhost
+    - 127.0.0.1
+
+- name: Ensure Anonymous user(s) are not in the database
+  mysql_user:
+    login_user: root
+    login_password: "{{ db_root_password }}"
+    name: ''
+    host: "{{ item }}"
+    state: absent
+  with_items:
+    - localhost
 
 - name: Activate log rotation for general and slow query logs
   template: src=etc-logrotate-mysql.j2 dest=/etc/logrotate.d/mysql
